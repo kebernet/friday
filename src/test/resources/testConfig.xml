@@ -1,0 +1,13 @@
+<configuration>
+    <controllers>
+        <controller>
+            <address>/dev/tty.usbserial</address>
+            <type>CM11A</type>
+        </controller>
+    </controllers>
+    <devices>
+        <device controller-address="/dev/tty.usbserial" house="A" device="1" type="LIGHT" name="Entry Lamp" />
+        <device controller-address="/dev/tty.usbserial" house="A" device="2" type="LIGHT" name="End Table" />
+        <device controller-address="/dev/tty.usbserial" house="A" device="3" type="LIGHT" name="Floor Lamp" />
+    </devices>
+</configuration>

@@ -1,5 +1,6 @@
 package com.totsp.home.friday.web.server;
 
+import javax.inject.Singleton;
 import javax.servlet.Filter;
 import javax.servlet.FilterChain;
 import javax.servlet.FilterConfig;
@@ -13,6 +14,7 @@ import java.util.logging.Logger;
 /**
  * Created by rcooper on 7/11/15.
  */
+@Singleton
 public class LogFilter implements Filter {
     private static final Logger LOGGER = Logger.getLogger(LogFilter.class.getCanonicalName());
     @Override

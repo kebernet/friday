@@ -17,8 +17,8 @@
 import groovy.json.JsonSlurper
 
 preferences {
-    input("ip", "string", title:"IP Address", description: "192.168.16.82", required: true, displayDuringSetup: true)
-    input("x10id", "string", title:"X10 Device", description: "A1", defaultValue: "A1" , required: true, displayDuringSetup: true)
+    input("ip", "string", title:"IP Address", description: "IP Address of your Friday server. (192.168.16.82)", required: true, displayDuringSetup: true)
+    input("x10id", "string", title:"X10 Device", description: "X10 Device ID (A1)", defaultValue: "A1" , required: true, displayDuringSetup: true)
 }
 
 
@@ -46,7 +46,6 @@ metadata {
     }
 }
 
-// parse events into attributes
 def parse(String description) {
     log.debug "Parsing '${description}'"
     def lanMessage = parseLanMessage(description);
@@ -69,14 +68,13 @@ private setDeviceNetworkId(ip,port){
     log.debug "Device Network Id set to ${iphex}:${porthex}"
 }
 
-// handle commands
-def on() {
+def sendState(body) {
     def path = "/state";
     log.debug "Executing 'on' "+x10id.toUpperCase()+ " at "+getHostAddress()+path;
     def result = new physicalgraph.device.HubAction(
             method: "POST",
             path: path,
-            body: '{"on":true, "brightness":100}',
+            body: body,
             headers: [
                     HOST: getHostAddress(),
                     "Content-Type":"application/json",
@@ -84,43 +82,19 @@ def on() {
             ]
     )
     return result
+}
+
+// handle commands
+def on() {
+    sendState('{"on":true, "brightness":100}')
 }
 
 def off() {
-    try {
-        def path = "/state";
-        def result = new physicalgraph.device.HubAction(
-                method: "POST",
-                path: path,
-                body: '{"on":true, "brightness":0}',
-                headers: [
-                        HOST: getHostAddress(),
-                        "Content-Type":"application/json",
-                        "Accept":"application/json"
-                ]
-        )
-        //log.debug result
-        result
-    } catch(Exception e){
-        log.debug "Hit Exception $e on $result"
-    }
+    sendState('{"on":true, "brightness":0}')
 }
 
 def setLevel(Double level) {
-    log.debug "Executing 'setLevel' "+level
-    def path = "/state";
-    log.debug "Executing 'on' "+x10id.toUpperCase()+ " at "+getHostAddress()+path;
-    def result = new physicalgraph.device.HubAction(
-            method: "POST",
-            path: path,
-            body: '{"on":true, "brightness":'+Math.abs(level)+'}',
-            headers: [
-                    HOST: getHostAddress(),
-                    "Content-Type":"application/json",
-                    "Accept":"application/json"
-            ]
-    )
-    return result
+    sendState('{"on":true, "brightness":'+Math.abs(level)+'}')
 }
 
 private getHostAddress() {
@@ -153,11 +127,4 @@ private String convertPortToHex(port) {
     return hexport
 }
 
-private Integer convertHexToInt(hex) {
-    return Integer.parseInt(hex,16)
-}
-
-private String convertHexToIP(hex) {
-    return [convertHexToInt(hex[0..1]),convertHexToInt(hex[2..3]),convertHexToInt(hex[4..5]),convertHexToInt(hex[6..7])].join(".")
-}
 

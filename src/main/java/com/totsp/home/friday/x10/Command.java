@@ -133,6 +133,8 @@ public class Command implements Serializable
     private String addressString;
     private byte functionByte;
     private int level;
+    private boolean useRadioFrequency;
+
     
     
     /** Command constructs a Command object with the specified address
@@ -448,5 +450,13 @@ public class Command implements Serializable
     public static byte getFunction(byte function)
     {
         return((byte) (function & 0x0000000F));
+    }
+
+    public boolean isUseRadioFrequency() {
+        return useRadioFrequency;
+    }
+
+    public void setUseRadioFrequency(boolean useRadioFrequency) {
+        this.useRadioFrequency = useRadioFrequency;
     }
 }

@@ -18,7 +18,7 @@ import groovy.json.JsonSlurper
 
 preferences {
     input("ip", "string", title:"IP Address", description: "IP Address of your Friday server. (192.168.16.82)", required: true, displayDuringSetup: true)
-    input("x10id", "string", title:"X10 Device", description: "X10 Device ID (A1)", defaultValue: "A1" , required: true, displayDuringSetup: true)
+    input("x10id", "string", title:"X10 X10Device", description: "X10 X10Device ID (A1)", defaultValue: "A1" , required: true, displayDuringSetup: true)
 }
 
 
@@ -65,7 +65,7 @@ private setDeviceNetworkId(ip,port){
     def iphex = convertIPtoHex(ip)
     def porthex = convertPortToHex(port)
     device.deviceNetworkId = "$iphex:$porthex"
-    log.debug "Device Network Id set to ${iphex}:${porthex}"
+    log.debug "X10Device Network Id set to ${iphex}:${porthex}"
 }
 
 def sendState(body) {

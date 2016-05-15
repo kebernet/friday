@@ -2,7 +2,7 @@ Friday X10 Gateway for SmartThings
 ==================================
 
 
-This is a server that allow bridging from SmartThings to X10 devices. It is really, really rough
+This is a server that allow bridging from SmartThings to X10 x10Devices. It is really, really rough
 and not recommended for use by anyone.
 
 Requirements
@@ -32,4 +32,4 @@ This will give you a zip file in build/distributions that you can unzip and run.
 SmartThings
 -----------
 
-Publish the devices from src/main/groovy to your ST account.
+Publish the x10Devices from src/main/groovy to your ST account.

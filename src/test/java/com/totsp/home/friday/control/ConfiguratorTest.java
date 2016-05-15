@@ -16,8 +16,8 @@ public class ConfiguratorTest {
         Configurator configurator = new Configurator("src/test/resources/testConfig.xml");
         configurator.initialize();
         Configuration config = configurator.getConfig();
-        assertEquals("/dev/tty.usbserial", config.getControlers().get(0).getAddress());
-        assertEquals(ControllerType.CM11A, config.getControlers().get(0).getType());
+        assertEquals("/dev/tty.usbserial", config.getControllers().get(0).getAddress());
+        assertEquals(ControllerType.CM11A, config.getControllers().get(0).getType());
         assertEquals("A1", config.getDevices().get(0).getAddress());
     }
 }

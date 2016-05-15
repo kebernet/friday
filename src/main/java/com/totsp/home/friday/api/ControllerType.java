@@ -5,5 +5,5 @@ package com.totsp.home.friday.api;
  */
 public enum ControllerType {
 
-    CM11A, CM17A
+    CM11A, CM17A, CM19A, CM15A
 }

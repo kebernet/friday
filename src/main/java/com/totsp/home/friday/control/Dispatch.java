@@ -4,8 +4,8 @@ import com.google.inject.Singleton;
 import com.totsp.home.friday.api.Device;
 import com.totsp.home.friday.api.DeviceType;
 import com.totsp.home.friday.api.State;
+import com.totsp.home.friday.driver.ControlInterface;
 import com.totsp.home.friday.x10.Command;
-import com.totsp.home.friday.x10.X10Interface;
 import com.totsp.home.friday.x10.UnitEvent;
 import com.totsp.home.friday.x10.UnitListener;
 
@@ -24,8 +24,8 @@ import java.util.logging.Logger;
 public class Dispatch {
     private static final Logger LOGGER = Logger.getLogger(Dispatch.class.getCanonicalName());
     private Map<String, Device> devices = new ConcurrentHashMap<>();
-    private Map<String, X10Interface> controllers = new ConcurrentHashMap<>();
-    private Map<Device, X10Interface> controllerMap = new ConcurrentHashMap<>();
+    private Map<String, ControlInterface> controllers = new ConcurrentHashMap<>();
+    private Map<Device, ControlInterface> controllerMap = new ConcurrentHashMap<>();
     private Map<Device, UnitListener> listenerMap = new ConcurrentHashMap<>();
     private List<DeviceStateChangedListener> stateListeners = new CopyOnWriteArrayList<>();
 
@@ -36,10 +36,14 @@ public class Dispatch {
     public void transition(String address, State state){
         Device device = findDevice(address);
         State current = device.getState();
-        X10Interface controller = controllerMap.get(device);
+        ControlInterface controller = controllerMap.get(device);
+        if(controller == null){
+            LOGGER.info(""+controllerMap);
+            throw new RuntimeException("Controller for "+device+" not found!");
+        }
         if(current == null){
-            controller.addCommand(new Command(address, Command.OFF));
-            controller.addCommand(new Command(address, Command.ON));
+            controller.addCommand(device, new Command(address, Command.OFF));
+            controller.addCommand(device, new Command(address, Command.ON));
             current = new State(true, 100);
         }
         Command update;
@@ -55,86 +59,86 @@ public class Dispatch {
             default:
                 update = new Command(address, state.isOn() ? Command.ON : Command.OFF);
         }
-        controller.addCommand(update);
+        controller.addCommand(device, update);
         device.setState(state);
     }
 
 
-    public void addDevice(final Device device, X10Interface controller){
-        this.devices.put(device.getAddress(), device);
-        this.controllerMap.put(device, controller);
+    public void addDevice(final Device x10Device, ControlInterface controller){
+        this.devices.put(x10Device.getAddress(), x10Device);
+        this.controllerMap.put(x10Device, controller);
         UnitListener listener = new UnitListener() {
             @Override
             public void allUnitsOff(UnitEvent event) {
-                if(device.getState() == null || device.getState().isOn()){
-                    LOGGER.info("Got ALL UNITS OFF for "+device.getAddress());
-                    State old = device.getState();
+                if(x10Device.getState() == null || x10Device.getState().isOn()){
+                    LOGGER.info("Got ALL UNITS OFF for "+ x10Device.getAddress());
+                    State old = x10Device.getState();
                     State state = new State(false, 0);
-                    device.setState(state);
-                    dispatchEvent(device, old);
+                    x10Device.setState(state);
+                    dispatchEvent(x10Device, old);
                 }
             }
 
             @Override
             public void allLightsOff(UnitEvent event) {
-                if(device.getType() == DeviceType.LIGHT){
-                    if(device.getState() == null || device.getState().isOn()){
-                        LOGGER.info("Got ALL LIGHTS OFF for "+device.getAddress());
-                        State old = device.getState();
+                if(x10Device.getType() == DeviceType.LIGHT){
+                    if(x10Device.getState() == null || x10Device.getState().isOn()){
+                        LOGGER.info("Got ALL LIGHTS OFF for "+ x10Device.getAddress());
+                        State old = x10Device.getState();
                         State state = new State(false, 0);
-                        device.setState(state);
-                        dispatchEvent(device, old);
+                        x10Device.setState(state);
+                        dispatchEvent(x10Device, old);
                     }
                 }
             }
 
             @Override
             public void allLightsOn(UnitEvent event) {
-                if(device.getType() == DeviceType.LIGHT){
-                    if(device.getState() == null || !device.getState().isOn()){
-                        LOGGER.info("Got ALL LIGHTS ON for "+device.getAddress());
-                        State old = device.getState();
+                if(x10Device.getType() == DeviceType.LIGHT){
+                    if(x10Device.getState() == null || !x10Device.getState().isOn()){
+                        LOGGER.info("Got ALL LIGHTS ON for "+ x10Device.getAddress());
+                        State old = x10Device.getState();
                         State state = new State(true, 100);
-                        device.setState(state);
-                        dispatchEvent(device, old);
+                        x10Device.setState(state);
+                        dispatchEvent(x10Device, old);
                     }
                 }
             }
 
             @Override
             public void unitOn(UnitEvent event) {
-                if(device.matches(event.getCommand().getHouseCode(), event.getCommand().getUnitCode())){
-                    if(device.getState() == null || !device.getState().isOn()){
-                        LOGGER.info("Got ON for "+device.getAddress());
-                        State old = device.getState();
+                if(x10Device.matches(event.getCommand().getHouseCode(), event.getCommand().getUnitCode())){
+                    if(x10Device.getState() == null || !x10Device.getState().isOn()){
+                        LOGGER.info("Got ON for "+ x10Device.getAddress());
+                        State old = x10Device.getState();
                         State state = new State(true, 100);
-                        device.setState(state);
-                        dispatchEvent(device, state);
+                        x10Device.setState(state);
+                        dispatchEvent(x10Device, state);
                     }
                 }
             }
 
             @Override
             public void unitOff(UnitEvent event) {
-                if(device.matches(event.getCommand().getHouseCode(), event.getCommand().getUnitCode())){
-                    if(device.getState() == null || device.getState().isOn()){
-                        LOGGER.info("Got OFF for "+device.getAddress());
-                        State old = device.getState();
+                if(x10Device.matches(event.getCommand().getHouseCode(), event.getCommand().getUnitCode())){
+                    if(x10Device.getState() == null || x10Device.getState().isOn()){
+                        LOGGER.info("Got OFF for "+ x10Device.getAddress());
+                        State old = x10Device.getState();
                         State state = new State(false, 0);
-                        device.setState(state);
-                        dispatchEvent(device, state);
+                        x10Device.setState(state);
+                        dispatchEvent(x10Device, state);
                     }
                 }
             }
 
             @Override
             public void unitDim(UnitEvent event) {
-                if(device.matches(event.getCommand().getHouseCode(), event.getCommand().getUnitCode())){
-                    if(device.getState() == null || device.getState().isOn()){
-                        State old = device.getState();
+                if(x10Device.matches(event.getCommand().getHouseCode(), event.getCommand().getUnitCode())){
+                    if(x10Device.getState() == null || x10Device.getState().isOn()){
+                        State old = x10Device.getState();
                         State state = new State(true, (old == null ? 100 : old.getBrightness() ) - event.getCommand().getLevel() );
-                        device.setState(state);
-                        dispatchEvent(device, state);
+                        x10Device.setState(state);
+                        dispatchEvent(x10Device, state);
                     }
                 }
 
@@ -142,24 +146,25 @@ public class Dispatch {
 
             @Override
             public void unitBright(UnitEvent event) {
-                if(device.matches(event.getCommand().getHouseCode(), event.getCommand().getUnitCode())){
-                    if(device.getState() == null || device.getState().isOn()){
-                        State old = device.getState();
+                if(x10Device.matches(event.getCommand().getHouseCode(), event.getCommand().getUnitCode())){
+                    if(x10Device.getState() == null || x10Device.getState().isOn()){
+                        State old = x10Device.getState();
                         State state = new State(true, (old == null ? 0 : old.getBrightness() ) + event.getCommand().getLevel() );
-                        device.setState(state);
-                        dispatchEvent(device, state);
+                        x10Device.setState(state);
+                        dispatchEvent(x10Device, state);
                     }
                 }
             }
         };
+        listenerMap.put(x10Device, listener);
     }
 
-    private void dispatchEvent(Device device, State previous){
+    private void dispatchEvent(Device x10Device, State previous){
         for(DeviceStateChangedListener l : this.stateListeners){
             try {
-                l.onStateChanged(device, previous);
+                l.onStateChanged(x10Device, previous);
             } catch(Exception e){
-                LOGGER.log(Level.WARNING, "Exception dispatching event for "+device.getAddress(), e);
+                LOGGER.log(Level.WARNING, "Exception dispatching event for "+ x10Device.getAddress(), e);
             }
         }
     }
@@ -167,17 +172,17 @@ public class Dispatch {
 
     public String dumpState(){
         StringBuilder builder = new StringBuilder();
-        for(Device device : devices.values()){
-            builder = builder.append(device.getAddress())
+        for(Device x10Device : devices.values()){
+            builder = builder.append(x10Device.getAddress())
                 .append(" (")
-                .append(device.getType())
+                .append(x10Device.getType())
                 .append(") ");
-            if(device.getState() == null){
+            if(x10Device.getState() == null){
                 builder = builder.append("no data");
             } else {
-                builder = builder.append(device.getState().isOn() ? "on " : "off");
-                if(device.getType() == DeviceType.LIGHT){
-                    builder = builder.append(device.getState().getBrightness());
+                builder = builder.append(x10Device.getState().isOn() ? "on " : "off");
+                if(x10Device.getType() == DeviceType.LIGHT){
+                    builder = builder.append(x10Device.getState().getBrightness());
                 }
             }
             builder = builder.append("\n");

@@ -1,6 +1,7 @@
 package com.totsp.home.friday.x10;
 
 
+import com.totsp.home.friday.api.Device;
 import gnu.io.CommPortIdentifier;
 import gnu.io.NoSuchPortException;
 import gnu.io.PortInUseException;
@@ -28,11 +29,11 @@ public class CM11A implements Runnable, X10Interface {
     private SerialPort sp;
     private volatile boolean running;
     private byte[] lastAddresses;
-    private UnitEventDispatcher dispatcher;
+    private final UnitEventDispatcher dispatcher;
     private LinkedBlockingQueue<Command> queue;
     private boolean commandInitiated = false;
 
-    public CM11A(String comport) throws X10Exception {
+    public CM11A(UnitEventDispatcher dispatcher, String comport) throws X10Exception {
         try {
             CommPortIdentifier cpi = CommPortIdentifier.getPortIdentifier(comport);
             sp = (SerialPort) cpi.open("JavaX10Controller", 10000);
@@ -45,11 +46,11 @@ public class CM11A implements Runnable, X10Interface {
             inputStream = new DataInputStream(sp.getInputStream());
             outputStream = new DataOutputStream(sp.getOutputStream());
         } catch (NoSuchPortException|PortInUseException|UnsupportedCommOperationException|IOException e) {
-            throw new X10Exception("Unable to connect to serial port: "+e.getMessage(), e);
+            throw new X10Exception("Unable to connect to serial port: "+comport+" "+e.getMessage(), e);
         }
         queue = new LinkedBlockingQueue<>();
         lastAddresses = new byte[0];
-        dispatcher = new UnitEventDispatcher();
+        this.dispatcher = dispatcher;
         new Thread(this).start();
         this.addUnitListener(new UnitListener() {
             @Override
@@ -134,10 +135,11 @@ public class CM11A implements Runnable, X10Interface {
     /**
      * addCommand adds a command to the queue to be dispatched.
      *
+     * @param device
      * @param command the Command to be dispatched.
      */
 
-    public void addCommand(Command command) {
+    public void addCommand(Device device, Command command) {
         if (queue.peek() != null) {
             queue.add(command);
         } else {

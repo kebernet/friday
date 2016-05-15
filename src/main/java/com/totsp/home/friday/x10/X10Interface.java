@@ -19,53 +19,8 @@
 
 package com.totsp.home.friday.x10;
 
+import com.totsp.home.friday.driver.ControlInterface;
 
-/** X10Interface is implemented by any class that can act as an entry
-* point for controlling com.totsp.home.friday.x10 devices.  A X10Interface must be able to
-* distribute added Commands to ALL registered com.totsp.home.friday.x10 hardware and software
-* modules.  A X10Interface must also handle the addition and removal of
-* UnitListeners.
-*
-*
-* @author Wade Wassenberg
-*
-* @version 1.3
-* @see com.totsp.home.friday.x10.Command
-* @see com.totsp.home.friday.x10.UnitListener
-*/
 
-public interface X10Interface
-{
-    
-    
-    /** addUnitListener registers the specified UnitListener to recieve
-    * ALL events that occur, whether initiated by hardware or software
-    * control modules.
-    *
-    * @param listener the object to recieve UnitEvent objects.
-    * @see com.totsp.home.friday.x10.UnitEvent
-    */
-    
-    public void addUnitListener(UnitListener listener);
-    
-    
-    /** removeUnitListener unregisters the specified UnitListener.
-    * If the specified UnitListener isn't registered, then it is
-    * ignored.
-    *
-    * @param listener the listener to unregister.
-    *
-    */
-    
-    public void removeUnitListener(UnitListener listener);
-    
-    
-    /** addCommand adds a Command to the queue to be dispatched to
-    * all hardware and software com.totsp.home.friday.x10 modules.
-    *
-    * @param command the Command to be queued.
-    *
-    */
-    
-    public void addCommand(Command command);
+public interface X10Interface extends ControlInterface {
 }

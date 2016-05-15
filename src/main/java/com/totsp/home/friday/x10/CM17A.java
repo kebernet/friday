@@ -1,5 +1,6 @@
 package com.totsp.home.friday.x10;
 
+import com.totsp.home.friday.api.Device;
 import gnu.io.CommPortIdentifier;
 import gnu.io.NoSuchPortException;
 import gnu.io.PortInUseException;
@@ -25,10 +26,10 @@ public class CM17A implements Runnable, X10Interface {
 
     private SerialPort sp;
     private boolean running;
-    private UnitEventDispatcher dispatcher;
-    private ConcurrentLinkedQueue<Command> queue;
+    private final UnitEventDispatcher dispatcher;
+    private final ConcurrentLinkedQueue<Command> queue;
     private static final Command STOP = new Command("A1", Command.DIM, 0);
-    private Hashtable commandTable;
+    private final Hashtable commandTable;
 
 
     /**
@@ -42,7 +43,7 @@ public class CM17A implements Runnable, X10Interface {
      *                     to the specified Communications Port.
      */
 
-    public CM17A(String comport) throws X10Exception {
+    public CM17A(UnitEventDispatcher dispatcher, String comport) throws X10Exception {
         try {
             CommPortIdentifier cpi = CommPortIdentifier.getPortIdentifier(comport);
             sp = (SerialPort) cpi.open("JavaX10Controller", 10000);
@@ -73,7 +74,7 @@ public class CM17A implements Runnable, X10Interface {
         }
 
         queue = new ConcurrentLinkedQueue<>();
-        dispatcher = new UnitEventDispatcher();
+        this.dispatcher = dispatcher;
         new Thread(this).start();
     }
 
@@ -88,7 +89,7 @@ public class CM17A implements Runnable, X10Interface {
     }
 
 
-    public void addCommand(Command command) {
+    public void addCommand(Device device, Command command) {
         queue.add(command);
     }
 
@@ -99,7 +100,7 @@ public class CM17A implements Runnable, X10Interface {
      */
 
     protected void finalize() {
-        addCommand(STOP);
+        addCommand(null, STOP);
         dispatcher.kill();
     }
 

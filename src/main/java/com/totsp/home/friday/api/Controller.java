@@ -1,5 +1,7 @@
 package com.totsp.home.friday.api;
 
+import com.google.common.base.Objects;
+
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 
@@ -25,5 +27,14 @@ public class Controller {
 
     public void setType(ControllerType type) {
         this.type = type;
+    }
+
+
+    @Override
+    public String toString() {
+        return Objects.toStringHelper(this)
+                .add("address", address)
+                .add("type", type)
+                .toString();
     }
 }

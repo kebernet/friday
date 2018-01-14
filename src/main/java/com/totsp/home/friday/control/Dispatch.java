@@ -4,6 +4,7 @@ import com.google.inject.Singleton;
 import com.totsp.home.friday.api.Device;
 import com.totsp.home.friday.api.DeviceType;
 import com.totsp.home.friday.api.State;
+import com.totsp.home.friday.api.X10Device;
 import com.totsp.home.friday.driver.ControlInterface;
 import com.totsp.home.friday.x10.Command;
 import com.totsp.home.friday.x10.UnitEvent;
@@ -36,6 +37,7 @@ public class Dispatch {
     public void transition(String address, State state){
         Device device = findDevice(address);
         State current = device.getState();
+        LOGGER.info("Dispatching to: "+device +" new state: "+state);
         ControlInterface controller = controllerMap.get(device);
         if(controller == null){
             LOGGER.info(""+controllerMap);
@@ -49,6 +51,21 @@ public class Dispatch {
         Command update;
         switch(device.getType()) {
             case LIGHT:
+                if(device instanceof X10Device && ((X10Device) device).isUseOnOff()){
+                    if(state.getBrightness() == 0){
+                        state.setOn(false);
+                    }
+                    if(state.isOn() & !current.isOn()) {
+                        update =  new Command(address, Command.ON);
+                        state.setBrightness(100);
+                        break;
+                    }
+                    if(!state.isOn() & current.isOn()){
+                        update =  new Command(address, Command.OFF);
+                        state.setBrightness(100);
+                        break;
+                    }
+                }
                 if(state.isOn() != current.isOn()) {
                     update = new Command(address, state.isOn() ? Command.BRIGHT : Command.DIM, 100);
                 } else {

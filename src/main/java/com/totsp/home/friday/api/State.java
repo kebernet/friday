@@ -53,4 +53,12 @@ public class State implements Serializable {
     public int hashCode() {
         return Objects.hashCode(on, brightness);
     }
+
+    @Override
+    public String toString() {
+        return Objects.toStringHelper(this)
+                .add("on", on)
+                .add("brightness", brightness)
+                .toString();
+    }
 }

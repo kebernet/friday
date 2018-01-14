@@ -6,8 +6,6 @@ import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlRootElement;
-import javax.xml.bind.annotation.XmlTransient;
-import java.io.Serializable;
 
 /**
  * Created by rcooper on 6/29/15.
@@ -17,6 +15,7 @@ import java.io.Serializable;
 public class X10Device extends Device {
     private String controllerAddress;
     private String name;
+    private boolean useOnOff = false;
 
     @XmlAttribute(name="controller-address")
     public String getControllerAddress() {
@@ -37,6 +36,16 @@ public class X10Device extends Device {
     }
 
 
+    @XmlAttribute(name="use-on-off")
+    public boolean isUseOnOff(){
+        return useOnOff;
+    }
+
+    public void setUseOnOff(boolean onOff){
+        this.useOnOff = onOff;
+    }
+
+
     @Override
     public String toString() {
         return Objects.toStringHelper(this)
@@ -46,6 +55,7 @@ public class X10Device extends Device {
                 .add("houseCode", getHouseCode())
                 .add("state", getState())
                 .add("type", getType())
+                .add("useOnOff", isUseOnOff())
                 .toString();
     }
 
